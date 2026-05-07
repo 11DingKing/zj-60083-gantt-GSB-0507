@@ -1,10 +1,11 @@
 import type { Task, Dependency } from '@/types'
+import { dateToX } from '@/utils/coordinate'
+import type { CoordinateContext } from '@/utils/coordinate'
 
 export interface DependencyOptions {
   tasks: Task[]
   dependencies: Dependency[]
-  projectStart: Date
-  cellWidth: number
+  ctx: CoordinateContext
   timelineHeight: number
   rowHeight: number
   taskHeight: number
@@ -14,8 +15,8 @@ export interface DependencyOptions {
   scrollY: number
 }
 
-export function drawDependencies(ctx: CanvasRenderingContext2D, options: DependencyOptions): void {
-  const { tasks, dependencies, projectStart, cellWidth, timelineHeight, rowHeight, taskHeight, taskPadding, scrollX, scrollY } = options
+export function drawDependencies(cctx: CanvasRenderingContext2D, options: DependencyOptions): void {
+  const { tasks, dependencies, ctx, timelineHeight, rowHeight, taskHeight, taskPadding, scrollX, scrollY } = options
 
   dependencies.forEach(dep => {
     const fromIndex = tasks.findIndex(t => t.id === dep.fromTaskId)
@@ -29,42 +30,41 @@ export function drawDependencies(ctx: CanvasRenderingContext2D, options: Depende
     const fromY = timelineHeight + fromIndex * rowHeight + taskHeight / 2 + taskPadding - scrollY
     const toY = timelineHeight + toIndex * rowHeight + taskHeight / 2 + taskPadding - scrollY
 
-    const fromEndX = dateToX(new Date(fromTask.endDate), projectStart, cellWidth) - scrollX
-    const toStartX = dateToX(new Date(toTask.startDate), projectStart, cellWidth) - scrollX
+    const fromEndX = dateToX(new Date(fromTask.endDate), ctx) - scrollX
+    const toStartX = dateToX(new Date(toTask.startDate), ctx) - scrollX
 
     if (fromY < timelineHeight || toY < timelineHeight) return
 
     const color = dep.hasConflict ? '#ef4444' : '#9ca3af'
     const lineWidth = dep.hasConflict ? 2 : 1
 
-    ctx.save()
-    ctx.strokeStyle = color
-    ctx.lineWidth = lineWidth
-    ctx.fillStyle = color
+    cctx.save()
+    cctx.strokeStyle = color
+    cctx.lineWidth = lineWidth
+    cctx.fillStyle = color
 
-    ctx.beginPath()
-    ctx.moveTo(fromEndX, fromY)
-    ctx.lineTo(fromEndX + 10, fromY)
-    ctx.lineTo(fromEndX + 10, toY)
-    ctx.lineTo(toStartX - 10, toY)
-    ctx.stroke()
+    cctx.beginPath()
+    cctx.moveTo(fromEndX, fromY)
+    cctx.lineTo(fromEndX + 10, fromY)
+    cctx.lineTo(fromEndX + 10, toY)
+    cctx.lineTo(toStartX - 10, toY)
+    cctx.stroke()
 
-    ctx.beginPath()
-    ctx.moveTo(toStartX - 10, toY - 5)
-    ctx.lineTo(toStartX - 10, toY + 5)
-    ctx.lineTo(toStartX - 4, toY)
-    ctx.closePath()
-    ctx.fill()
+    cctx.beginPath()
+    cctx.moveTo(toStartX - 10, toY - 5)
+    cctx.lineTo(toStartX - 10, toY + 5)
+    cctx.lineTo(toStartX - 4, toY)
+    cctx.closePath()
+    cctx.fill()
 
-    ctx.restore()
+    cctx.restore()
   })
 }
 
 export interface DependencyPreviewOptions {
   tasks: Task[]
   fromTaskId: string
-  projectStart: Date
-  cellWidth: number
+  ctx: CoordinateContext
   timelineHeight: number
   rowHeight: number
   taskHeight: number
@@ -76,32 +76,27 @@ export interface DependencyPreviewOptions {
   currentY: number
 }
 
-export function drawDependencyPreview(ctx: CanvasRenderingContext2D, options: DependencyPreviewOptions): void {
-  const { tasks, fromTaskId, projectStart, cellWidth, timelineHeight, rowHeight, taskHeight, taskPadding, scrollX, scrollY, currentX, currentY } = options
+export function drawDependencyPreview(cctx: CanvasRenderingContext2D, options: DependencyPreviewOptions): void {
+  const { tasks, fromTaskId, ctx, timelineHeight, rowHeight, taskHeight, taskPadding, scrollX, scrollY, currentX, currentY } = options
 
   const fromIndex = tasks.findIndex(t => t.id === fromTaskId)
   if (fromIndex === -1) return
 
   const fromTask = tasks[fromIndex]
   const fromY = timelineHeight + fromIndex * rowHeight + taskHeight / 2 + taskPadding - scrollY
-  const fromEndX = dateToX(new Date(fromTask.endDate), projectStart, cellWidth) - scrollX
+  const fromEndX = dateToX(new Date(fromTask.endDate), ctx) - scrollX
 
-  ctx.save()
-  ctx.strokeStyle = '#3b82f6'
-  ctx.lineWidth = 2
-  ctx.setLineDash([5, 5])
+  cctx.save()
+  cctx.strokeStyle = '#3b82f6'
+  cctx.lineWidth = 2
+  cctx.setLineDash([5, 5])
 
-  ctx.beginPath()
-  ctx.moveTo(fromEndX, fromY)
-  ctx.lineTo(fromEndX + 10, fromY)
-  ctx.lineTo(fromEndX + 10, currentY)
-  ctx.lineTo(currentX, currentY)
-  ctx.stroke()
+  cctx.beginPath()
+  cctx.moveTo(fromEndX, fromY)
+  cctx.lineTo(fromEndX + 10, fromY)
+  cctx.lineTo(fromEndX + 10, currentY)
+  cctx.lineTo(currentX, currentY)
+  cctx.stroke()
 
-  ctx.restore()
-}
-
-function dateToX(date: Date, projectStart: Date, cellWidth: number): number {
-  const days = (date.getTime() - projectStart.getTime()) / (24 * 60 * 60 * 1000)
-  return Math.round(days * cellWidth)
+  cctx.restore()
 }
