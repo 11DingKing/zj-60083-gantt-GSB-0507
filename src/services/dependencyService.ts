@@ -39,7 +39,7 @@ export async function createDependency(
     hasConflict: false
   }
 
-  await db.add('dependencies', dependency)
+  await db.add('dependencies', JSON.parse(JSON.stringify(dependency)))
   return dependency
 }
 
