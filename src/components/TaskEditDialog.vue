@@ -195,7 +195,7 @@ function handleSave(): void {
     duration: form.value.duration,
     progress: form.value.progress,
     priority: form.value.priority,
-    assignees: form.value.assignees,
+    assignees: [...form.value.assignees],
     isMilestone: form.value.isMilestone
   }
 

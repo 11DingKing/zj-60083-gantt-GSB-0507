@@ -33,7 +33,7 @@ export async function createBaseline(
     createdAt: now
   }
 
-  await db.add('baselines', baseline)
+  await db.add('baselines', JSON.parse(JSON.stringify(baseline)))
   return baseline
 }
 
